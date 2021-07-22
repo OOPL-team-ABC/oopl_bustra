@@ -1,8 +1,11 @@
+import java.awt.Point;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -11,7 +14,7 @@ import javax.swing.SwingUtilities;
 import static java.awt.Color.*;
 import static java.awt.event.KeyEvent.*;
 
-public class Bustra extends JPanel implements KeyListener {
+public class Bustra extends JPanel implements KeyListener ,MouseMotionListener{
 	  private static final long serialVersionUID = 1L;
 	  private final static int R = 40, E = 2;
 	  private final static int COLS = 6, ROWS = 5;
@@ -35,6 +38,7 @@ public class Bustra extends JPanel implements KeyListener {
 		    }
 		    setFocusable(true);
 		    addKeyListener(this);
+        addMouseMotionListener(this);
 	  }
 
 	  @Override
@@ -61,8 +65,44 @@ public class Bustra extends JPanel implements KeyListener {
 		    g.setColor(BLACK);
 		    g.drawString("←, ↑, ↓, →: move position", 20, ROWS * R + 25);
 		    g.drawString("<SPACE>: toggle exchange",  20, ROWS * R + 40);
-	  }
-
+    }
+    // マウスでドラッグしたときの操作
+    public void mouseDragged(MouseEvent e){
+        // マウスカーソルの座標取得
+        Point p = e.getPoint();
+        // 配列の範囲外にカーソルがある時動作しない
+        // R(円の直径)で割ることで座標を配列に使いやすい形に整形
+        if(p.x/R < COLS && p.y/R < ROWS){
+            if (p.x/R > x){ // 右へ移動
+                x = p.x/R;
+                Color tmp = state[x - 1][y];
+                state[x - 1][y] = state[x][y];
+                state[x][y] = tmp;
+            }else if(p.x/R < x){ // 左へ移動
+                x = p.x/R;
+                Color tmp = state[x + 1][y];
+                state[x + 1][y] = state[x][y];
+                state[x][y] = tmp;
+            }else if(p.y/R > y){ // 下へ移動
+                y = p.y/R;
+                Color tmp = state[x][y - 1];
+                state[x][y - 1] = state[x][y];
+                state[x][y] = tmp;
+            }else if(p.y/R < x){ // 上へ移動
+                y = p.y/R;
+                Color tmp = state[x][y + 1];
+                state[x][y + 1] = state[x][y];
+                state[x][y] = tmp;
+            }
+        }
+        repaint();
+    }
+    // マウスカーソルを動かしたときの操作
+    public void mouseMoved(MouseEvent e){
+        Point p = e.getPoint();
+        x = p.x/R;
+        y = p.y/R;
+    }
 	  public void keyPressed(KeyEvent e) {
 		    int key = e.getKeyCode();
 		    switch (key) {
