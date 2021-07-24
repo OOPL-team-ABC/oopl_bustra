@@ -34,6 +34,14 @@ public class Bustra extends JPanel implements MouseMotionListener{
 				        row[j] = colors[(int)(Math.random() * 6)];
 			      }
 		    }
+        // スタートするときに消せるブロックが無いようにする
+        while(true){
+            if(!(allSerch(false))){
+                refillBlock();
+                break;
+            }
+            refillBlock();
+        }
 		    setFocusable(true);
         addMouseMotionListener(this);
     }
@@ -115,68 +123,75 @@ public class Bustra extends JPanel implements MouseMotionListener{
         if(toggle){
             System.out.println("操作終了");
             // 処理
-            allSerch();
-            puzzledrop();
-            refillBlock();
+            while(true){
+                if(!(allSerch(true))){
+                    break;
+                }
+                puzzledrop();
+                try{
+                    Thread.sleep(300);
+                }catch(InterruptedException err){}
+                refillBlock();
+            }
             repaint();
             toggle = false;
         }
 
     }
-    // 同じ色が3つつながっているか(横方向)
-    public boolean lineSideThree(int cols,int rows,int cont){
+    // 同じ色が3つつながっているか(０で横方向、１で縦方向)
+    public boolean lineConnectThree(int cols,int rows,int cont,int mode){
         // 基準となるブロックの色
         Color c = state[cols][rows];
         // 横方向に探索しながら色が違ったら終了
-        // contを変更すると4,5つつながった場合に対応できる
+        // contを変更すると4,5つつながった場合に対応できる(未実装)
         for(int i = 1;i < cont;i++){
-            if(c != state[cols+i][rows]){
-                return false;
+            if(mode == 0){
+                if(c != state[cols+i][rows]){
+                    return false;
+                }
+            }else{
+                if(c != state[cols][rows+i]){
+                    return false;
+                }
             }
         }
         return true;
     }
-
-    // 同じ色が3つつながっているか(縦方向)
-    public boolean lineVerticalThree(int cols,int rows,int cont){
-        // 基準となるブロックの色
-        Color c = state[cols][rows];
-        // 横方向に探索しながら色が違ったら終了
-        // contを変更すると4,5つつながった場合に対応できる
-        for(int i = 1;i < cont;i++){
-            if(c != state[cols][rows+i]){
-                return false;
-            }
-        }
-        return true;
-    }
-
     // 全体の探索
-    public void allSerch(){
+    public boolean allSerch(boolean mode){
+        // 始まるタイミングで消せるブロックをなくすため
+        boolean flag = false;
         // 横方向の探索
         for(int i = 0;i < COLS-2;i++){
             for(int j = 0;j < ROWS;j++){
-                if(lineSideThree(i,j,3)){
+                if(lineConnectThree(i,j,3,0)){
+                    flag =true;
                     puzzleDelete(i,j,3,0);
-                    myPaint();
-                    try{
-                        Thread.sleep(500);
-                    }catch(InterruptedException e){}
+                    if(mode){
+                        myPaint();
+                        try{
+                            Thread.sleep(300);
+                        }catch(InterruptedException e){}
+                    }
                 }
             }
         }
         // 縦方向の探索
         for(int i = 0;i < COLS;i++){
             for(int j = 0;j < ROWS-2;j++){
-                if(lineVerticalThree(i,j,3)){
+                if(lineConnectThree(i,j,3,1)){
+                    flag = true;
                     puzzleDelete(i,j,3,1);
-                    myPaint();
-                    try{
-                        Thread.sleep(500);
-                    }catch(InterruptedException e){}
+                    if(mode){
+                        myPaint();
+                        try{
+                            Thread.sleep(300);
+                        }catch(InterruptedException e){}
+                    }
                 }
             }
         }
+        return flag;
     }
     // 揃ったら消す(0で横方向,1で縦方向)
     public void puzzleDelete(int cols,int rows,int cont,int mode){
@@ -196,12 +211,12 @@ public class Bustra extends JPanel implements MouseMotionListener{
                 // 黒(消えたパズル)なら置き換える
                 if(state[i][j] == colors[6]){
                     moveDownBlock(i,j);
-                    myPaint();
-                    try{
-                        Thread.sleep(500);
-                    }catch(InterruptedException e){}
                 }
             }
+            myPaint();
+            try{
+                Thread.sleep(300);
+            }catch(InterruptedException e){}
         }
     }
     // 上にあるブロックを下に移動する
@@ -210,12 +225,15 @@ public class Bustra extends JPanel implements MouseMotionListener{
         for(int i = rows-1;i >= 0;i--){
             // 黒以外が見つかったら黒のブロックと置き換える
             if(state[cols][i] != colors[6]){
-                state[cols][rows] = state[cols][i];
-                state[cols][i] = colors[6];
+                for(int j = i;j < rows;j++){
+                    state[cols][j+1] = state[cols][j];
+                    state[cols][j] = colors[6];
+                }
                 break;
             }
         }
     }
+
     // ブロックを補充する
     public void refillBlock(){
         for(int i = 0;i < COLS;i++){
