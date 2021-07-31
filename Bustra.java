@@ -1,3 +1,4 @@
+import java.awt.Font;
 import java.awt.Point;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -26,7 +27,7 @@ public class Bustra extends JPanel implements MouseMotionListener{
 	  public Bustra() {
 		    int i, j;
 
-		    setPreferredSize(new Dimension(240, 320));
+		    setPreferredSize(new Dimension(320, 520));
 		    state = new Color[COLS][ROWS];
 		    for (i = 0; i < COLS; i++) {
 			      Color[] row = state[i];
@@ -49,6 +50,8 @@ public class Bustra extends JPanel implements MouseMotionListener{
 	  @Override
 	  public void paint(Graphics g) {
 		    int i, j;
+        Font fm      = new Font("Serif",Font.PLAIN,50); //You表示用
+        Font fm_name = new Font("Serif",Font.PLAIN,30); //名前表示用
 		    for (i = 0; i < COLS; i++) {
 			      Color[] row = state[i];
 			      for (j = 0; j < ROWS; j++) {
@@ -61,15 +64,20 @@ public class Bustra extends JPanel implements MouseMotionListener{
 				        }  else {
 					          g.setColor(WHITE);
 				        }
-				        g.fillOval(i * R, j * R, R, R);
+				        g.fillOval(i * R + R, j * R + 160, R, R);
 				        Color c = row[j];
 				        g.setColor(c);
-				        g.fillOval(i * R + E, j * R + E, R - 2 * E, R - 2 * E);
+				        g.fillOval(i * R + E + R, j * R + E + 160, R - 2 * E, R - 2 * E);
 			      }
 		    }
-		    g.setColor(BLACK);
-		    g.drawString("←, ↑, ↓, →: move position", 20, ROWS * R + 25);
-		    g.drawString("<SPACE>: toggle exchange",  20, ROWS * R + 40);
+        // プレイヤーネーム表示
+        g.setColor(BLACK);                       // 文字の色
+        g.setFont(fm);                           // フォント
+        g.drawString("You", 20, 420);            // 文字,x座標,y座標の順に指定
+
+        g.setColor(BLACK);
+        g.setFont(fm_name);
+        g.drawString("Nakamura tomoaki",30,460);
     }
     // 任意のタイミングで描画する
     public void myPaint(){
@@ -77,9 +85,9 @@ public class Bustra extends JPanel implements MouseMotionListener{
         for(int i = 0;i < COLS;i++){
             for(int j = 0;j < ROWS;j++){
                 g.setColor(WHITE);
-                g.fillOval(i * R,j * R,R,R);
+                g.fillOval(i * R+R,j * R,R,R);
                 g.setColor(state[i][j]);
-                g.fillOval(i * R + E,j * R + E,R - 2 * E,R - 2 * E);
+                g.fillOval(i * R + E + R,j * R + E,R - 2 * E,R - 2 * E);
             }
         }
     }
@@ -90,7 +98,7 @@ public class Bustra extends JPanel implements MouseMotionListener{
         toggle = true;
         // 配列の範囲外にカーソルがある時動作しない
         // R(円の直径)で割ることで座標を配列に使いやすい形に整形
-        if(p.x/R < COLS && p.y/R < ROWS){
+        if(p.x/R < COLS && p.y/R < ROWS+4){
             if (p.x/R > x){ // 右へ移動
                 x = p.x/R;
                 Color tmp = state[x - 1][y];
