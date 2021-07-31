@@ -26,6 +26,8 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.sound.sampled.FloatControl;
 
+import java.lang.String;
+
 public class Bustra extends JPanel implements MouseMotionListener{
 	  private static final long serialVersionUID = 1L;
 	  private final static int R = 40, E = 2;
@@ -37,13 +39,16 @@ public class Bustra extends JPanel implements MouseMotionListener{
 
     //音声
     static Clip clip_bgm        = createClip(new File("music/bgm.wav"));
-    static Clip clip_puzzle     = createClip(new File("music/puzzle.wav"));
-    static Clip clip_puzzle_dis = createClip(new File("music/puzzle_dis.wav"));
+    static Clip clip_puzzle_move= createClip(new File("music/puzzle_move.wav"));
+    //static Clip clip_puzzle_dis = createClip(new File("music/puzzle_dis.wav"));
     static FloatControl ctrl_bgm        = (FloatControl)clip_bgm.getControl(FloatControl.Type.MASTER_GAIN);
-    static FloatControl ctrl_puzzle     = (FloatControl)clip_puzzle.getControl(FloatControl.Type.MASTER_GAIN);
-    static FloatControl ctrl_puzzle_dis = (FloatControl)clip_puzzle.getControl(FloatControl.Type.MASTER_GAIN);
+    //static FloatControl ctrl_puzzle_move= (FloatControl)clip_puzzle_move.getControl(FloatControl.Type.MASTER_GAIN);
+    //static FloatControl ctrl_puzzle_dis = (FloatControl)clip_puzzle_dis.getControl(FloatControl.Type.MASTER_GAIN);
 
+    // 座標
     private int x = 0, y = 0;
+    // コンボ数
+    private int comb_count = 10;
 
 	  public Bustra() {
 		    int i, j;
@@ -125,25 +130,25 @@ public class Bustra extends JPanel implements MouseMotionListener{
         // R(円の直径)で割ることで座標を配列に使いやすい形に整形
         if(p.x/R < COLS && p.y/R < ROWS){
            if (p.x/R > x){ // 右へ移動
-                soundStart(clip_puzzle,30);
+                soundStart(clip_puzzle_move,30);
                 x = p.x/R;
                 Color tmp = state[x - 1][y];
                 state[x - 1][y] = state[x][y];
                 state[x][y] = tmp;
             }else if(p.x/R < x){ // 左へ移動
-                soundStart(clip_puzzle,30);
+                soundStart(clip_puzzle_move,30);
                 x = p.x/R;
                 Color tmp = state[x + 1][y];
                 state[x + 1][y] = state[x][y];
                 state[x][y] = tmp;
             }else if(p.y/R > y){ // 下へ移動
-                soundStart(clip_puzzle,30);
+                soundStart(clip_puzzle_move,30);
                 y = p.y/R;
                 Color tmp = state[x][y - 1];
                 state[x][y - 1] = state[x][y];
                 state[x][y] = tmp;
             }else if(p.y/R < y){ // 上へ移動
-                soundStart(clip_puzzle,30);
+                soundStart(clip_puzzle_move,30);
                 y = p.y/R;
                 Color tmp = state[x][y + 1];
                 state[x][y + 1] = state[x][y];
@@ -173,12 +178,16 @@ public class Bustra extends JPanel implements MouseMotionListener{
             repaint();
             toggle = false;
         }
-
+        comb_count = 10;
     }
     // 同じ色が3つつながっているか(０で横方向、１で縦方向)
     public boolean lineConnectThree(int cols,int rows,int cont,int mode){
         // 基準となるブロックの色
         Color c = state[cols][rows];
+        // 黒(消えている時)終了
+        if(c == colors[6]){
+            return false;
+        }
         // 横方向に探索しながら色が違ったら終了
         // contを変更すると4,5つつながった場合に対応できる(未実装)
         for(int i = 1;i < cont;i++){
@@ -205,8 +214,11 @@ public class Bustra extends JPanel implements MouseMotionListener{
                     flag =true;
                     puzzleDelete(i,j,3,0);
                     if(mode){
+                        comb_count += 1;
+                        if(comb_count > 14){comb_count = 14;}
                         myPaint();
-                        soundStart(clip_puzzle_dis,300);
+                        Clip clip_puzzle_dis = createClip(new File("music/puzzle_dis_"+String.valueOf(comb_count)+".wav"));
+                        soundStart(clip_puzzle_dis,500);
                         try{
                             Thread.sleep(300);
                         }catch(InterruptedException e){}
@@ -221,8 +233,11 @@ public class Bustra extends JPanel implements MouseMotionListener{
                     flag = true;
                     puzzleDelete(i,j,3,1);
                     if(mode){
+                        comb_count += 1;
+                        if(comb_count > 14){comb_count = 14;}
                         myPaint();
-                        soundStart(clip_puzzle_dis,300);
+                        Clip clip_puzzle_dis = createClip(new File("music/puzzle_dis_"+String.valueOf(comb_count)+".wav"));
+                        soundStart(clip_puzzle_dis,500);
                         try{
                             Thread.sleep(300);
                         }catch(InterruptedException e){}
@@ -316,8 +331,17 @@ public class Bustra extends JPanel implements MouseMotionListener{
             Thread.sleep(time);
         }catch(InterruptedException err){}
         clip.stop();
-		    clip.flush();
+        clip.flush();
         clip.setFramePosition(0);
+    }
+    // コンボ数に応じて音楽を変更する(最大15)
+    public Clip soundChange(int comb_count){
+        if(comb_count > 15){
+            comb_count = 15;
+        }
+        String music_file = "music/puzzle_dis" + comb_count + ".wav";
+        Clip clip_puzzle_dis = createClip(new File(music_file));
+        return clip_puzzle_dis;
     }
 
 	  public static void main(String[] args) {
@@ -325,7 +349,7 @@ public class Bustra extends JPanel implements MouseMotionListener{
 			  /* タイトルバーに表示する文字列を指定できる */
 			  JFrame frame = new JFrame("Bustra!");
         // bgm再生
-        clip_bgm.start();
+        clip_bgm.loop(Clip.LOOP_CONTINUOUSLY);
         // bgmの音量調整
         ctrl_bgm.setValue((float)Math.log10((float)0.5 / 20)*20);
 
@@ -336,7 +360,5 @@ public class Bustra extends JPanel implements MouseMotionListener{
 			  /* ×ボタンを押したときの動作を指定する */
 			  frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		    });
-        //clip_bgm.close();
-        //clip_puzzle.close();
 	  }
 }
