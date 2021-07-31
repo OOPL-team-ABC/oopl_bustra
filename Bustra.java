@@ -36,10 +36,12 @@ public class Bustra extends JPanel implements MouseMotionListener{
 	  private boolean toggle = false;
 
     //音声
-    static Clip clip_bgm = createClip(new File("music/bgm.wav"));
-    static Clip clip_puzzle = createClip(new File("music/puzzle.wav"));
-    static FloatControl ctrl_bgm    = (FloatControl)clip_bgm.getControl(FloatControl.Type.MASTER_GAIN);
-    static FloatControl ctrl_puzzle = (FloatControl)clip_puzzle.getControl(FloatControl.Type.MASTER_GAIN);
+    static Clip clip_bgm        = createClip(new File("music/bgm.wav"));
+    static Clip clip_puzzle     = createClip(new File("music/puzzle.wav"));
+    static Clip clip_puzzle_dis = createClip(new File("music/puzzle_dis.wav"));
+    static FloatControl ctrl_bgm        = (FloatControl)clip_bgm.getControl(FloatControl.Type.MASTER_GAIN);
+    static FloatControl ctrl_puzzle     = (FloatControl)clip_puzzle.getControl(FloatControl.Type.MASTER_GAIN);
+    static FloatControl ctrl_puzzle_dis = (FloatControl)clip_puzzle.getControl(FloatControl.Type.MASTER_GAIN);
 
     private int x = 0, y = 0;
 
@@ -204,6 +206,7 @@ public class Bustra extends JPanel implements MouseMotionListener{
                     puzzleDelete(i,j,3,0);
                     if(mode){
                         myPaint();
+                        soundStart(clip_puzzle_dis,300);
                         try{
                             Thread.sleep(300);
                         }catch(InterruptedException e){}
@@ -219,6 +222,7 @@ public class Bustra extends JPanel implements MouseMotionListener{
                     puzzleDelete(i,j,3,1);
                     if(mode){
                         myPaint();
+                        soundStart(clip_puzzle_dis,300);
                         try{
                             Thread.sleep(300);
                         }catch(InterruptedException e){}
@@ -307,7 +311,7 @@ public class Bustra extends JPanel implements MouseMotionListener{
     // 音楽を指定した時間(timeミリ秒)鳴らす
     public void soundStart(Clip clip,int time){
         clip.start();
-        ctrl_puzzle.setValue((float)Math.log10((float)0.8 / 20)*20);
+        //ctrl_puzzle.setValue((float)Math.log10((float)1 / 20)*20);
         try{
             Thread.sleep(time);
         }catch(InterruptedException err){}
