@@ -40,10 +40,7 @@ public class Bustra extends JPanel implements MouseMotionListener{
     //音声
     static Clip clip_bgm        = createClip(new File("music/bgm.wav"));
     static Clip clip_puzzle_move= createClip(new File("music/puzzle_move.wav"));
-    //static Clip clip_puzzle_dis = createClip(new File("music/puzzle_dis.wav"));
     static FloatControl ctrl_bgm        = (FloatControl)clip_bgm.getControl(FloatControl.Type.MASTER_GAIN);
-    //static FloatControl ctrl_puzzle_move= (FloatControl)clip_puzzle_move.getControl(FloatControl.Type.MASTER_GAIN);
-    //static FloatControl ctrl_puzzle_dis = (FloatControl)clip_puzzle_dis.getControl(FloatControl.Type.MASTER_GAIN);
 
     // 座標
     private int x = 0, y = 0;
@@ -326,22 +323,14 @@ public class Bustra extends JPanel implements MouseMotionListener{
     // 音楽を指定した時間(timeミリ秒)鳴らす
     public void soundStart(Clip clip,int time){
         clip.start();
-        //ctrl_puzzle.setValue((float)Math.log10((float)1 / 20)*20);
+        FloatControl ctrl= (FloatControl)clip.getControl(FloatControl.Type.MASTER_GAIN);
+        ctrl.setValue((float)Math.log10((float)0.8 / 20)*20);
         try{
             Thread.sleep(time);
-        }catch(InterruptedException err){}
+        }catch(InterruptedException e){}
         clip.stop();
         clip.flush();
         clip.setFramePosition(0);
-    }
-    // コンボ数に応じて音楽を変更する(最大15)
-    public Clip soundChange(int comb_count){
-        if(comb_count > 15){
-            comb_count = 15;
-        }
-        String music_file = "music/puzzle_dis" + comb_count + ".wav";
-        Clip clip_puzzle_dis = createClip(new File(music_file));
-        return clip_puzzle_dis;
     }
 
 	  public static void main(String[] args) {
