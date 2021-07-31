@@ -88,7 +88,7 @@ public class Bustra extends JPanel implements KeyListener ,MouseMotionListener{
                 Color tmp = state[x][y - 1];
                 state[x][y - 1] = state[x][y];
                 state[x][y] = tmp;
-            }else if(p.y/R < x){ // 上へ移動
+            }else if(p.y/R < y){ // 上へ移動
                 y = p.y/R;
                 Color tmp = state[x][y + 1];
                 state[x][y + 1] = state[x][y];
