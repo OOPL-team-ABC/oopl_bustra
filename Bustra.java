@@ -48,7 +48,7 @@ public class Bustra extends JPanel implements MouseMotionListener{
     // 座標
     private int x = 0, y = 0;
     // コンボ数
-    private int comb_count = 10;
+    private int comb_count = 0;
 
 	  public Bustra() {
 		    int i, j;
@@ -178,7 +178,7 @@ public class Bustra extends JPanel implements MouseMotionListener{
             repaint();
             toggle = false;
         }
-        comb_count = 10;
+        comb_count = 0;
     }
     // 同じ色が3つつながっているか(０で横方向、１で縦方向)
     public boolean lineConnectThree(int cols,int rows,int cont,int mode){
