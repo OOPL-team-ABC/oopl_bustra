@@ -5,9 +5,13 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.Image;
+import java.awt.Toolkit;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 
 import static java.awt.Color.*;
@@ -29,7 +33,7 @@ import javax.sound.sampled.FloatControl;
 import java.lang.String;
 import java.util.*;
 
-public class Bustra1 {
+public class Bustra{
     static Sound sound;
     // bgm
     public static Clip clip = sound.createClip(new File("music/bgm.wav"));
@@ -38,31 +42,19 @@ public class Bustra1 {
     public static void main(String[] args){
         SwingUtilities.invokeLater(() -> {
             // ゲーム画面
-            Window w = new Window("Bustra!",240,320);
+            ChangePanel4 panel = new ChangePanel4(360,700);
             // bgmの音量調整
             ctrl.setValue((float)Math.log10((float)0.5/20)*20);
             // bgmをループ再生
             clip.loop(Clip.LOOP_CONTINUOUSLY);
-
-            w.add(new Puzzle());
-            w.setVisible(true);
         });
     }
 }
-// 画面を表示するクラス
-class Window extends JFrame{
-    public Window(String title,int width,int height){
-        super(title);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(width,height);
-        setLocationRelativeTo(null);
-    }
-}
-
 // パズルの内部処理クラス
 class Puzzle extends JPanel implements MouseMotionListener{
     static Sound sound;
-    private final static int R = 40, E = 2;      // ブロックの大きさ
+    static ChangePanel4 panel;
+    private final static int R = 60, E = 2;      // ブロックの大きさ
     private final static int COLS = 6, ROWS = 5;  // 盤面の大きさ
     private static Color[][] state;
     private final static Color VIOLET = new Color(0x8a, 0x2b, 0xe2);
@@ -73,6 +65,13 @@ class Puzzle extends JPanel implements MouseMotionListener{
     private int x = 0,y = 0;
     // コンボ数
     private int comb_count = 0;
+
+    // モンスターのHP
+    private int monHP = 1500;
+    // 自分のHP
+    private int myHP  = 500;
+    // モンスターの画像
+    Image img = Toolkit.getDefaultToolkit().getImage("bin/honehone1.png");
 
     // ブロックを動かしたときの音
     Clip clip_puzzle_move = sound.createClip(new File("music/puzzle_move.wav"));
@@ -100,6 +99,9 @@ class Puzzle extends JPanel implements MouseMotionListener{
     }
     @Override
     public void paint(Graphics g) {
+        Font hp   = new Font("Arial",Font.PLAIN,30); // HP表示用
+        Font name = new Font("Arial",Font.PLAIN,15); // 名前表示用
+        JButton endbutton = new JButton();
         int i, j;
 		    for (i = 0; i < COLS; i++) {
 			      Color[] row = state[i];
@@ -113,12 +115,30 @@ class Puzzle extends JPanel implements MouseMotionListener{
 				        }  else {
 					          g.setColor(WHITE);
 				        }
-				        g.fillOval(i * R, j * R, R, R);
+				        g.fillOval(i * R, j * R + 240, R, R);
 				        Color c = row[j];
 				        g.setColor(c);
-				        g.fillOval(i * R + E, j * R + E, R - 2 * E, R - 2 * E);
+				        g.fillOval(i * R + E, j * R + E + 240, R - 2 * E, R - 2 * E);
 			      }
 		    }
+        g.drawImage(img,-50,0,300,300,this);
+        g.setColor(LIGHT_GRAY);
+        g.fillRect(200,40,150,80);
+        g.setColor(WHITE);
+        g.fillRect(200,140,150,80);
+        g.setColor(BLACK);
+        g.setFont(name);
+        g.drawString("ホネホネくんHP",215,58);
+        g.drawString("YOU",215,158);
+
+        g.setFont(hp);
+        g.drawString(String.valueOf(monHP),250,100);
+        g.drawString(String.valueOf(myHP),250,200);
+        if(monHP <= 0){
+            g.drawString("GAME CLEAR",180,600);
+        }else if(myHP <= 0){
+            g.drawString("GAME OVER",180,600);
+        }
     }
     // 任意のタイミングで描画する
     private void myPaint(){
@@ -128,10 +148,10 @@ class Puzzle extends JPanel implements MouseMotionListener{
 			      Color[] row = state[i];
 			      for (j = 0; j < ROWS; j++) {
                 g.setColor(WHITE);
-				        g.fillOval(i * R, j * R, R, R);
+				        g.fillOval(i * R, j * R + 240, R, R);
 				        Color c = row[j];
 				        g.setColor(c);
-				        g.fillOval(i * R + E, j * R + E, R - 2 * E, R - 2 * E);
+				        g.fillOval(i * R + E, j * R + E + 240, R - 2 * E, R - 2 * E);
 			      }
 		    }
     }
@@ -150,7 +170,7 @@ class Puzzle extends JPanel implements MouseMotionListener{
         toggle = true;
         // 配列の範囲外にカーソルがある時動作しない
         // R(円の直径)で割ることで座標を配列に使いやすい形に整形
-        if(p.x/R < COLS && p.y/R < ROWS){
+        if(p.x/R < COLS && p.y/R - 4 < ROWS && p.y/R - 4 >= 0){
             if (p.x/R > x){ // 右へ移動
                 x = p.x/R;
                 sound.soundStart(clip_puzzle_move,30,0.8);
@@ -159,12 +179,12 @@ class Puzzle extends JPanel implements MouseMotionListener{
                 x = p.x/R;
                 sound.soundStart(clip_puzzle_move,30,0.8);
                 exchange(x,x+1,y,y);
-            }else if(p.y/R > y){ // 下へ移動
-                y = p.y/R;
+            }else if(p.y/R-4 > y){ // 下へ移動
+                y = p.y/R - 4;
                 sound.soundStart(clip_puzzle_move,30,0.8);
                 exchange(x,x,y,y-1);
-            }else if(p.y/R < y){ // 上へ移動
-                y = p.y/R;
+            }else if(p.y/R-4 < y){ // 上へ移動
+                y = p.y/R - 4;
                 sound.soundStart(clip_puzzle_move,30,0.8);
                 exchange(x,x,y,y+1);
             }
@@ -175,7 +195,7 @@ class Puzzle extends JPanel implements MouseMotionListener{
     public void mouseMoved(MouseEvent e){
         Point p = e.getPoint();
         x = p.x/R;
-        y = p.y/R;
+        y = p.y/R - 4;
         if(toggle){
             System.out.println("操作終了");
             // 消せるブロックがなくなるまで処理を行う
@@ -191,6 +211,7 @@ class Puzzle extends JPanel implements MouseMotionListener{
                 myPaint();
                 sleepFor(3);
             }
+            damege();
             repaint();
             toggle = false;
         }
@@ -304,7 +325,11 @@ class Puzzle extends JPanel implements MouseMotionListener{
             sleepFor(3);
         }
     }
-
+    // ダメージ計算
+    private void damege(){
+        monHP -= comb_count * 100;
+        myHP  -= 100;
+    }
 }
 // サウンドを再生するクラス
 class Sound{
