@@ -259,7 +259,7 @@ class Puzzle extends JPanel implements MouseMotionListener{
                     comb_count += 1;
                     if(comb_count > 14){comb_count = 14;}
                     myPaint();
-                    Clip clip_puzzle_dis = sound.createClip(new File(getClass().getResource("music/puzzle_dis_"+String.valueOf(comb_count)+".wav")));
+                    Clip clip_puzzle_dis = sound.createClip(new File("music/puzzle_dis_"+String.valueOf(comb_count)+".wav"));
                     sound.soundStart(clip_puzzle_dis,500,0.8);
                     sleepFor(3);
                 }
